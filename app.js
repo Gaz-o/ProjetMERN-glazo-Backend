@@ -1,18 +1,21 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+let express = require('express');
+const cors = require('cors')
+let cookieParser = require('cookie-parser');
+let logger = require('morgan');
 
-var indexRouter = require('./routes/index');
+let indexRouter = require('./routes/index');
+let connexionRouter = require('./routes/connexion');
 
-var app = express();
+let app = express();
+
+app.use(cors()) // <= permet d'autoriser les connexions depuis toutes les adresses
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/connexion', connexionRouter);
 app.use('/', indexRouter);
 
 module.exports = app;
