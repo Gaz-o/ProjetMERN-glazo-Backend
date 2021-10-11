@@ -6,6 +6,10 @@ let logger = require('morgan');
 let indexRouter = require('./routes/index');
 let connexionRouter = require('./routes/connexion');
 
+const mongoose = require('mongoose');
+const DB_URI = "mongodb://localhost:27017/glazo"
+mongoose.connect(DB_URI).then(() => console.log('DB OK'))
+
 let app = express();
 
 app.use(cors()) // <= permet d'autoriser les connexions depuis toutes les adresses
@@ -15,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/connexion', connexionRouter);
+app.use('/user', connexionRouter);
 app.use('/', indexRouter);
 
 module.exports = app;
