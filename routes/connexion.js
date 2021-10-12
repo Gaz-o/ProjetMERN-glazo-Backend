@@ -13,9 +13,7 @@ const jwt = require("jsonwebtoken");
 
 router.post("/add", function (req, res) {
   if (!req.body.mail || !req.body.pseudo || !req.body.password) {
-    return res
-      .status(400)
-      .send({ success: false, message: "Manque un champs" });
+    return res.status(400).send({ success: false, message: "Manque un champs" });
   } else {
     let body = {
       password: bcrypt.hashSync(req.body.password, saltRounds),
@@ -24,17 +22,15 @@ router.post("/add", function (req, res) {
     };
     Utilisateur.find({ pseudo: req.body.pseudo }).then((UtilisateurPseudo) => {
       if (UtilisateurPseudo.length > 0) {
-        return res.status(400).send("Pseudo deja existant");
+        return res.status(400).send({ success: false, message: "Pseudo deja existant" });
       } else {
         Utilisateur.find({ mail: req.body.mail }).then((UtilisateursMail) => {
           if (UtilisateursMail.length < 1) {
             Utilisateur.insertMany(body)
-              .then(() =>
-                res.status(200).send({ success: true, message: "Ok" })
-              )
+              .then(() => res.send({ success: true, message: "Ok" }))
               .catch(console.log);
           } else {
-            return res.status(400).send("Mail deja existant");
+            return res.status(400).send({ success: false, message: "Mail deja existant" });
           }
         });
       }
@@ -44,9 +40,7 @@ router.post("/add", function (req, res) {
 
 router.post("/login", function (req, res, next) {
   if (!req.body.mail || !req.body.password) {
-    return res
-      .status(400)
-      .send({ success: false, message: "Manque un champs" });
+    return res.status(400).send({ success: false, message: "Manque un champs" });
   }
   Utilisateur.find({ mail: req.body.mail }).then((Utilisateur) => {
     if (Utilisateur.length === 1) {
@@ -63,28 +57,22 @@ router.post("/login", function (req, res, next) {
           "secret",
           { expiresIn: "24h" }
         );
-        return res
-          .status(200)
-          .send({ success: true, message: "Ok", token: token });
+        return res.send({ success: true, message: "Ok", token: token });
       }
-      return res
-        .status(400)
-        .send({ success: false, message: "erreur password" });
+      return res.status(400).send({ success: false, message: "erreur password" });
     }
-    return res
-      .status(400)
-      .send({ success: false, message: "erreur adress mail" });
+    return res.status(400).send({ success: false, message: "erreur adress mail" });
   });
 });
 
 router.get("/info", function (req, res, next) {
   const authHeader = req.get("Authorization");
   if (!authHeader) {
-    res.status(401).send("auth pas ok");
+    res.status(400).send({ success: false, message: "auth pas ok" });
   }
   const token = authHeader.split(" ")[1];
   if (!token) {
-    res.status(403).send("token pas ok");
+    res.status(400).send({ success: false, message: "token pas ok" });
   }
   // Here i decode the token
   const decodedToken = jwt.verify(token, "secret");
@@ -94,7 +82,7 @@ router.get("/info", function (req, res, next) {
 });
 
 router.get("/logout", function (req, res, next) {
-  res.status(200).send({ success: true, message: "Déconnection" });
+  res.send({ success: true, message: "Déconnection" });
 });
 
 router.put("/edit", function (req, res, next) {
@@ -108,7 +96,7 @@ router.put("/edit", function (req, res, next) {
     }
   )
     .then(function () {
-      res.status(200).send({ success: true, message: "Modification" });
+      res.send({ success: true, message: "Modification" });
     })
     .catch(function () {
       res.status(400).send({ success: false, message: "Erreur modification" });
@@ -119,7 +107,7 @@ router.delete("/delete", function (req, res, next) {
   console.log(req.body, "here");
   Utilisateur.deleteOne({ _id: req.body._id })
     .then(function () {
-      res.status(200).send({ success: true, message: "Suppression Ok" });
+      res.send({ success: true, message: "Suppression Ok" });
     })
     .catch(function () {
       res.status(400).send({ success: false, message: "Erreur suppression" });
