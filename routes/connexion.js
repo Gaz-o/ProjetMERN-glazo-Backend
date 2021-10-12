@@ -11,7 +11,7 @@ const Utilisateur = require("../models/utilisateur");
 
 const jwt = require("jsonwebtoken");
 
-router.post("/add", function (req, res, next) {
+router.post("/add", function (req, res) {
   if (!req.body.mail || !req.body.pseudo || !req.body.password) {
     return res
       .status(400)
@@ -22,12 +22,9 @@ router.post("/add", function (req, res, next) {
       mail: req.body.mail,
       pseudo: req.body.pseudo,
     };
-
     Utilisateur.find({ pseudo: req.body.pseudo }).then((UtilisateurPseudo) => {
       if (UtilisateurPseudo.length > 0) {
-        return res
-          .status(400)
-          .send({ success: false, message: "Pseudo deja existant" });
+        return res.status(400).send("Pseudo deja existant");
       } else {
         Utilisateur.find({ mail: req.body.mail }).then((UtilisateursMail) => {
           if (UtilisateursMail.length < 1) {
@@ -37,9 +34,7 @@ router.post("/add", function (req, res, next) {
               )
               .catch(console.log);
           } else {
-            res
-              .status(400)
-              .send({ success: false, message: "Mail deja existant" });
+            return res.status(400).send("Mail deja existant");
           }
         });
       }
@@ -52,73 +47,83 @@ router.post("/login", function (req, res, next) {
     return res
       .status(400)
       .send({ success: false, message: "Manque un champs" });
-  } else {
-    Utilisateur.find({ mail: req.body.mail }).then((Utilisateur) => {
-      if (Utilisateur.length === 1) {
-        let itsOk = bcrypt.compareSync(
-          req.body.password,
-          Utilisateur[0].password
-        );
-        console.log(itsOk);
-        if (itsOk === true) {
-          const token = jwt.sign(
-            {
-              userId: Utilisateur[0]._id,
-            },
-            "secret",
-            { expiresIn: "24h" }
-          );
-          res.status(200).send({ success: true, message: "Ok", token: token });
-        } else {
-          res.status(400).send({ success: false, message: "erreur password" });
-        }
-      } else {
-        res.status(400).send({ success: false, message: "erreur adress mail" });
-      }
-    });
   }
+  Utilisateur.find({ mail: req.body.mail }).then((Utilisateur) => {
+    if (Utilisateur.length === 1) {
+      let itsOk = bcrypt.compareSync(
+        req.body.password,
+        Utilisateur[0].password
+      );
+
+      if (itsOk) {
+        const token = jwt.sign(
+          {
+            userId: Utilisateur[0]._id,
+          },
+          "secret",
+          { expiresIn: "24h" }
+        );
+        return res
+          .status(200)
+          .send({ success: true, message: "Ok", token: token });
+      }
+      return res
+        .status(400)
+        .send({ success: false, message: "erreur password" });
+    }
+    return res
+      .status(400)
+      .send({ success: false, message: "erreur adress mail" });
+  });
 });
 
 router.get("/info", function (req, res, next) {
-  const authHeader = req.get('Authorization');
+  const authHeader = req.get("Authorization");
   if (!authHeader) {
     res.status(401).send("auth pas ok");
   }
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
   if (!token) {
     res.status(403).send("token pas ok");
   }
   // Here i decode the token
-  const decodedToken = jwt.verify(token, 'secret');
-  console.log(decodedToken);
-  Utilisateur.find({_id: decodedToken.userId}).then((UtilisateurId) => {
-    res.send({ success: true, message:"ça marche", data:UtilisateurId})
-  })
-}); 
-
+  const decodedToken = jwt.verify(token, "secret");
+  Utilisateur.find({ _id: decodedToken.userId }).then((UtilisateurId) => {
+    res.send({ success: true, message: "ça marche", data: UtilisateurId });
+  });
+});
 
 router.get("/logout", function (req, res, next) {
   res.status(200).send({ success: true, message: "Déconnection" });
 });
 
 router.put("/edit", function (req, res, next) {
-  console.log(req.body, "test");
-  Utilisateur
-    .updateOne(
-      { _id: req.body._id }, //filtre
-        {
-          pseudo:req.body.pseudo, //a changer
-          age:req.body.age,
-          genre:req.body.genre,
-          bio:req.body.bio
-        }
-    )
-    .then((obj) => {
-      console.log('Updated - OK');
+  Utilisateur.updateOne(
+    { _id: req.body._id }, //filtre
+    {
+      pseudo: req.body.pseudo, //a changer
+      age: req.body.age,
+      genre: req.body.genre,
+      bio: req.body.bio,
+    }
+  )
+    .then(function () {
       res.status(200).send({ success: true, message: "Modification" });
     })
-    .catch((err) => {
-      console.log('Error: ' + err);
+    .catch(function () {
+      res.status(400).send({ success: false, message: "Erreur modification" });
+    });
+});
+
+router.delete("/delete", function (req, res, next) {
+  console.log(req.body, "here");
+  Utilisateur.deleteOne({ _id: req.body._id })
+    .then(function () {
+      res.status(200).send({ success: true, message: "Suppression Ok" });
     })
-})
+    .catch(function () {
+      res.status(400).send({ success: false, message: "Erreur suppression" });
+    });
+});
+
 module.exports = router;
