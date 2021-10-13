@@ -18,7 +18,8 @@ const personnageSchema = mongoose.Schema({
         mainGauche:String, 
         mainDroit:String},
     reputation:Number,
-    argent:Number
+    argent:Number,
+    vie:Number
 })
 
 const PersonnageModel = mongoose.model('personnage', personnageSchema)

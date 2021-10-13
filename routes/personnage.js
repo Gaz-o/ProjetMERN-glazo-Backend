@@ -25,19 +25,40 @@ router.post("/add", function (req, res) {
 });
 
 router.get("/personnageactif", function (req, res, next) {
-  let token = Controller.controlToken(req, res)
+  let token = Controller.controlToken(req, res);
   const decodedToken = jwt.verify(token, "secret");
-  Personnage.findOne({proprietaire: decodedToken.userId, vie:{$gt:0}}).then((combattant) => {
+  Personnage.findOne({
+    proprietaire: decodedToken.userId,
+    vie: { $gt: 0 },
+  }).then((combattant) => {
     if (combattant !== null) {
-      res.send({ success:true, message:"Votre combattant", data:combattant})
+      res.send({
+        success: true,
+        message: "Votre combattant",
+        data: combattant,
+      });
     } else {
-      res.status(400).send({ success:false, message:"Plus de combattant actif"})
+      res
+        .status(400)
+        .send({ success: false, message: "Plus de combattant actif" });
     }
-  })
+  });
 });
 
 router.put("/edit", function (req, res, next) {});
 
-router.delete("/delete", function (req, res, next) {});
+router.put("/congedier", function (req, res, next) {
+  console.log(req.body.proprietaire, "truc");
+  Personnage
+    .updateOne(
+      { proprietaire: req.body.proprietaire, vie: { $gt: 0 } }, //filtre
+      { vie:0})
+    .then(function () {
+      res.send({ success: true, message: "Combattant congedier" });
+    })
+    .catch(function () {
+      res.status(400).send({ success: false, message: "Plus de combattant actif" });
+    });
+});
 
 module.exports = router;
