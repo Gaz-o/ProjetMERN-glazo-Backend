@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 const Utilisateur = require("../models/utilisateur");
+const Controller = require("../controler/connexion");
+
 //const Evenement = require('./models/evenement');
 //const Personnage = require('./models/personnage');
 //const Equipement = require('./models/equipement');
@@ -13,7 +15,9 @@ const jwt = require("jsonwebtoken");
 
 router.post("/add", function (req, res) {
   if (!req.body.mail || !req.body.pseudo || !req.body.password) {
-    return res.status(400).send({ success: false, message: "Manque un champs" });
+    return res
+      .status(400)
+      .send({ success: false, message: "Manque un champs" });
   } else {
     let body = {
       password: bcrypt.hashSync(req.body.password, saltRounds),
@@ -22,7 +26,9 @@ router.post("/add", function (req, res) {
     };
     Utilisateur.find({ pseudo: req.body.pseudo }).then((UtilisateurPseudo) => {
       if (UtilisateurPseudo.length > 0) {
-        return res.status(400).send({ success: false, message: "Pseudo deja existant" });
+        return res
+          .status(400)
+          .send({ success: false, message: "Pseudo deja existant" });
       } else {
         Utilisateur.find({ mail: req.body.mail }).then((UtilisateursMail) => {
           if (UtilisateursMail.length < 1) {
@@ -30,7 +36,9 @@ router.post("/add", function (req, res) {
               .then(() => res.send({ success: true, message: "Ok" }))
               .catch(console.log);
           } else {
-            return res.status(400).send({ success: false, message: "Mail deja existant" });
+            return res
+              .status(400)
+              .send({ success: false, message: "Mail deja existant" });
           }
         });
       }
@@ -40,7 +48,9 @@ router.post("/add", function (req, res) {
 
 router.post("/login", function (req, res, next) {
   if (!req.body.mail || !req.body.password) {
-    return res.status(400).send({ success: false, message: "Manque un champs" });
+    return res
+      .status(400)
+      .send({ success: false, message: "Manque un champs" });
   }
   Utilisateur.find({ mail: req.body.mail }).then((Utilisateur) => {
     if (Utilisateur.length === 1) {
@@ -59,23 +69,18 @@ router.post("/login", function (req, res, next) {
         );
         return res.send({ success: true, message: "Ok", token: token });
       }
-      return res.status(400).send({ success: false, message: "erreur password" });
+      return res
+        .status(400)
+        .send({ success: false, message: "erreur password" });
     }
-    return res.status(400).send({ success: false, message: "erreur adress mail" });
+    return res
+      .status(400)
+      .send({ success: false, message: "erreur adress mail" });
   });
 });
 
 router.get("/info", function (req, res, next) {
-  const authHeader = req.get("Authorization");
-  if (!authHeader) {
-    res.status(400).send({ success: false, message: "auth pas ok" });
-  }
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    res.status(400).send({ success: false, message: "token pas ok" });
-  }
-  // Here i decode the token
-  const decodedToken = jwt.verify(token, "secret");
+  const decodedToken = jwt.verify(Controller.controlToken(req, res), "secret");
   Utilisateur.find({ _id: decodedToken.userId }).then((UtilisateurId) => {
     res.send({ success: true, message: "ça marche", data: UtilisateurId });
   });
