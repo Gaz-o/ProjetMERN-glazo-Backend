@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 const Utilisateur = require("../models/utilisateur");
-const Controller = require("../controler/connexion");
+const Controller = require("../outils/connexion");
 
 //const Evenement = require('./models/evenement');
 //const Personnage = require('./models/personnage');
@@ -63,6 +63,7 @@ router.post("/login", function (req, res, next) {
         const token = jwt.sign(
           {
             userId: Utilisateur[0]._id,
+            userName: Utilisateur[0].pseudo
           },
           "secret",
           { expiresIn: "24h" }

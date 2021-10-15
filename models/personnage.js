@@ -9,17 +9,20 @@ const personnageSchema = mongoose.Schema({
         def:Number, 
         agi:Number, 
         pv:Number,
-        reste:Number}, 
+        reste:Number
+    }, 
     bio:String, 
     equipements:{
         tete:String, 
         torse:String, 
         jambe:String, 
         mainGauche:String, 
-        mainDroit:String},
+        mainDroit:String
+    },
     reputation:Number,
     argent:Number,
-    vie:Number
+    vie:Number,
+    messages:[{type:mongoose.Schema.Types.Mixed, ref:"commentaire"}]
 })
 
 const PersonnageModel = mongoose.model('personnage', personnageSchema)
