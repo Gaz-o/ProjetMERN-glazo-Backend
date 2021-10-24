@@ -1,4 +1,5 @@
 function controlToken(req, res) {
+  console.log(req.headers);
   const authHeader = req.get("Authorization");
   if (!authHeader) {
     return res.status(400).send({ success: false, message: "auth pas ok" });

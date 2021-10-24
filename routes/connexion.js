@@ -6,14 +6,11 @@ const saltRounds = 10;
 
 const Utilisateur = require("../models/utilisateur");
 const Controller = require("../outils/connexion");
-
-//const Evenement = require('./models/evenement');
-//const Personnage = require('./models/personnage');
-//const Equipement = require('./models/equipement');
+const pR = require("../repositories/personnageRepository");
 
 const jwt = require("jsonwebtoken");
 
-router.post("/add", function (req, res) {
+router.post("/add", async function (req, res) {
   if (!req.body.mail || !req.body.pseudo || !req.body.password) {
     return res
       .status(400)
@@ -24,25 +21,23 @@ router.post("/add", function (req, res) {
       mail: req.body.mail,
       pseudo: req.body.pseudo,
     };
-    Utilisateur.find({ pseudo: req.body.pseudo }).then((UtilisateurPseudo) => {
-      if (UtilisateurPseudo.length > 0) {
+    let result = await pR.exist("utilisateur", "pseudo", req.body.pseudo);
+    if (result) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Pseudo deja existant" });
+    } else {
+      let result = await pR.exist("utilisateur", "mail", req.body.mail);
+      if (!result) {
+        Utilisateur.insertMany(body)
+          .then(() => res.send({ success: true, message: "Ok" }))
+          .catch(console.log);
+      } else {
         return res
           .status(400)
-          .send({ success: false, message: "Pseudo deja existant" });
-      } else {
-        Utilisateur.find({ mail: req.body.mail }).then((UtilisateursMail) => {
-          if (UtilisateursMail.length < 1) {
-            Utilisateur.insertMany(body)
-              .then(() => res.send({ success: true, message: "Ok" }))
-              .catch(console.log);
-          } else {
-            return res
-              .status(400)
-              .send({ success: false, message: "Mail deja existant" });
-          }
-        });
+          .send({ success: false, message: "Mail deja existant" });
       }
-    });
+    }
   }
 });
 
@@ -63,7 +58,7 @@ router.post("/login", function (req, res, next) {
         const token = jwt.sign(
           {
             userId: Utilisateur[0]._id,
-            userName: Utilisateur[0].pseudo
+            userName: Utilisateur[0].pseudo,
           },
           "secret",
           { expiresIn: "24h" }
