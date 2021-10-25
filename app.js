@@ -10,7 +10,7 @@ let personnageRouter = require('./routes/personnage');
 let commentaireRouter = require('./routes/commentaire');
 
 const mongoose = require('mongoose');
-const DB_URI = /* process.env.SCALINGO_MONGO_URL || */ "mongodb://localhost:27017/glazo"
+const DB_URI = process.env.SCALINGO_MONGO_URL || "mongodb://localhost:27017/glazo"
 mongoose.connect(DB_URI).then(() => console.log('DB OK'))
 
 let app = express();
